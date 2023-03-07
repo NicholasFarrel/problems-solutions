@@ -1,3 +1,4 @@
+#https://codeforces.com/contest/1611/problem/B
 #este problema em si é bem simples, o que realmente é interessante, é a prova da solução.
 #primeiro, vejamos as ideias enquanto resolvemos, ao final apresento a prova.
 t = int(input())

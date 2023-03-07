@@ -1,3 +1,4 @@
+#https://codeforces.com/contest/1730/problem/B
 '''
 este problema quer x tal que max(ti + |a[i] - x|) seja mínimo, ou seja, que o tempo para a reunião começar seja mínimo
 para isso, vamos tentar descobrir T, o tempo mínimo que todos levam para se encontrar, assim, podemos construir x
