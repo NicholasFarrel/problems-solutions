@@ -12,114 +12,57 @@ const int inf1 = (int) 1e9 + 10;
 #define all(x) x.begin(), x.end()
 const int maxn = -1;
  
-//data structure that will help to solve the problem
-struct teleport
-{
-    int value;
-    int index;
-    bool porzero;
-};
-
-bool compareByValue(const teleport &tele_a, const teleport &tele_b) {
-    return tele_a.value < tele_b.value;
-}
-
-int binary_search_leftmost(const vector<teleport>& tele_vector, int x) {
-    int low = 1;
-    int high = tele_vector.size() - 1;
-    int result = -1;
-
-    while (low <= high) {
-        int mid = (low + high) / 2;
-        if (tele_vector[mid].value == x) {
-            result = mid;
-            high = mid - 1;
-        } else if (tele_vector[mid].value < x) {
-            low = mid + 1;
-        } else {
-            high = mid - 1;
-        }
-    }
-    return result;
-}
-
-int valor_simetrico(const teleport &tele_obj, int n) {
-    int valorSimetrico;
-    int index = tele_obj.index;
-    if (tele_obj.porzero) {
-        valorSimetrico = tele_obj.value + n - 2 * index + 1;
-    }
-    else {
-        valorSimetrico = tele_obj.value + 2 * index - n - 1;
-    }
-    return valorSimetrico;
-}
-
-void remover_simetricos(vector<teleport>& tele_vector, teleport &tele_obj, int posicao, int n) {
-    int index = tele_obj.index;
-    int valorSimetrico = valor_simetrico(tele_obj, n);
-
-    //apaga o teletransporte tele_obj
-    tele_vector.erase(tele_vector.begin() + posicao);
-
-    //binary search to find the value to remove
-    int i = binary_search_leftmost(tele_vector, valorSimetrico);
-
-    // como podemos ter mais de um elemento no vetor com valor valueRemove
-    // pegamos o índice mais a esquerda e procuramos o valor certo
-    while(tele_vector[i].index != index) {
-        i++;
-    }
-
-    // agora, basta remover ele da lista também
-    tele_vector.erase(tele_vector.begin() + i);
-
+bool cmp(const pair<int, int>& a, const pair<int, int>& b) {
+    return a.first < b.first;
 }
 
 void solve() {
     int n, c; cin >> n >> c;
     int ans = 0;
+    //neste vetor de pares, temos: 
+    //a[i].first = preço mínimo de teletransporte para i
+    //a[i].second = preço de teletrasnporte saindo do 0
+    vector<pair<int, int>> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i].first;
+        a[i].second = a[i].first + i + 1;
+        a[i].first += min(i + 1, n - i);
+    }
+    sort(a.begin(), a.end(), cmp);
 
-    //vetor de objetos de teletransporte
-    vector<teleport> tele(2 * n + 1);
-
-    //inicializando os objetos de teletransporte
-    int cur;
-    for (int i = 1; i <= n; i++) {
-        cin >> cur;
-        tele[i] = {cur + i, i, true};
-        tele[n + i] = {cur + n - i + 1, i, false};
+    vector<int> pref(1, 0);
+    for (int i = 0; i < n; i++) {
+        pref.pb(pref.back() + a[i].first);
     }
 
-    //ordenar objetos de teletransporte por valor
-    sort(tele.begin(), tele.end(), compareByValue);
+    for (int i = 0; i < n; i++) {
+        int maximo = 0;
+        int coins = c - a[i].second;
 
-    //achar o primeiro menor valor andando a partir do 0
-    cur = 1;
-    while (cur <= 2*n){
-        if (tele[cur].porzero) {
-            cout << "achei" << endl;
-            break;
+        //binary search to find the max pref < coins
+        int lo = 0, hi = n;
+        while(lo <= hi) {
+            int mid = lo + (hi - lo) / 2;
+            int sum = pref[mid];
+
+            //taken é a variável que indica quantos teletransportes peguei para este mid
+            //esse +1 é do primeiro teletransporte que peguei
+            int taken = mid + 1;
+
+            //se i < mid, devo descontar o teletransporte a[i] que já peguei
+            if (i < mid) {
+                sum -= a[i].first;
+                taken--;
+            }
+
+            if (sum <= coins) {
+                maximo = max(maximo, taken);
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
         }
-        cur++;
-    }
-
-    if (c >= tele[cur].value) {
-        c -= tele[cur].value;
-        ans++;
-        //vamos deletar o objeto encontrado e seu simétrico
-        remover_simetricos(tele, tele[cur], cur, n);
-
-    } else {
-        c = -1;
-    }
-
-    //loop que vai pegar o menor valor disponível, e realizar o teletransporte naquela casa
-    while (tele.size() > 1 && c >= tele[1].value) {
-        //tira o valor do teletransporte e incrementa a resposta
-        c -= tele[1].value;
-        ans++;
-        remover_simetricos(tele, tele[1], 1, n);
+        ans = max(ans, maximo);
     }
     cout << ans << endl;
 }
